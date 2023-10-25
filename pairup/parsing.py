@@ -36,7 +36,7 @@ def parse_method(code_text: str) -> callable:
         try:
             return parse_func(code_text)
         except Exception as exc:
-            logging.info(str(exc), f"using {parse_func.__name__}")
+            logging.debug(str(exc), f"using {parse_func.__name__}")
 
 
 def parse_data(code_text: str) -> list:
@@ -50,8 +50,8 @@ def parse_data(code_text: str) -> list:
         parsed_content = eval(parsed)
         return parsed_content, None
     except Exception as exc:
-        logging.info(exc, f"using {parse_func.__name__}")
-        logging.info(f"Parsed: {parsed}")
+        logging.debug(exc, f"using {parse_func.__name__}")
+        logging.debug(f"Parsed: {parsed}")
         return None, str(exc)
 
 

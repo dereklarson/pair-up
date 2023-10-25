@@ -10,7 +10,7 @@ ss = st.session_state
 
 class Configuration:
     DEV_TEST = False
-    DEV_TEST = True
+    # DEV_TEST = True
     USAGE_LIMIT = 10000
     MODES = ["overview", "test", "review", "viz"]
     STORES = ["content", "results", "bank", "fix"]
@@ -31,11 +31,12 @@ def initialize():
     st.set_page_config(layout="wide")
 
     logging.basicConfig(
+        filename="pairup.log",
         format="%(asctime)s.%(msecs)d|%(levelname)s| %(message)s",
         datefmt="%H:%M:%S",
         level=logging.INFO,
     )
-    logging.info("Init Script")
+    logging.info("Initialize Streamlit")
 
     # Load test problem code
     problems = Problems.list_all()

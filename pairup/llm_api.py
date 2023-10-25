@@ -26,7 +26,7 @@ async def query_openai(system: str, user: str, model: str = "gpt-3.5-turbo"):
         response = await openai.ChatCompletion.acreate(model=model, messages=messages)
         content = response.choices[0].message.content
         usage = response.usage.total_tokens
-        logging.info(f"Query content:\n{content}")
+        logging.info(f"Tokens: {usage:> 4d} Prompt: {user[:50]}")
     except Exception as exc:  # TODO Learn what exceptions can happen here
         logging.warning(exc)
         logging.warning(response)
