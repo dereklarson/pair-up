@@ -1,0 +1,16 @@
+version: "3.7"
+services:
+  pairup_ui:
+    build:
+      context: ${HOME}/${REPOS}/pair_up
+      dockerfile: docker/streamlit/Dockerfile
+    env_file:
+      - .env
+    image: pairup_ui:latest
+    command: 
+      - "streamlit"
+      - "run"
+      - "--browser.serverAddress=0.0.0.0"
+      - "streamlit_app.py"
+    ports:
+      - "${STREAMLIT_PORT}:${STREAMLIT_PORT}"
