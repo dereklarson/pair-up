@@ -24,16 +24,15 @@ def open_edit():
     ss.test_bank[ss.problem] = []
 
 
-@func_set_timeout(cfg.TEST_CASE_TIMEOUT)
-def run_func(func, input):
-    try:
-        result = func(input)
-    except Exception as exc:
-        result = str(exc)
-    return result
-
-
 def display_test_cases():
+    @func_set_timeout(ss.tc_timeout / 1000)
+    def run_func(func, input):
+        try:
+            result = func(input)
+        except Exception as exc:
+            result = str(exc)
+        return result
+
     results = []
     codestr = ss.code_bank[ss.problem]
     es = {**globals()}
@@ -43,7 +42,7 @@ def display_test_cases():
         try:
             result = run_func(func, case.get("input", case.get("inputs")))
         except FunctionTimedOut as exc:
-            result = f"Timeout({cfg.TEST_CASE_TIMEOUT}s)"
+            result = f"Timeout({ss.tc_timeout}ms)"
         results.append(result)
     df = pd.DataFrame(ss.test_cases)
     df["result"] = results

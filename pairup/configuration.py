@@ -1,6 +1,5 @@
 import inspect
 import logging
-from copy import deepcopy
 
 import streamlit as st
 
@@ -11,13 +10,13 @@ ss = st.session_state
 
 class Configuration:
     DEV_TEST = False
-    # DEV_TEST = True
+    DEV_TEST = True
     USAGE_LIMIT = 10000
     MODES = ["overview", "test", "review", "viz"]
-    # MODES = ["viz"]
     STORES = ["content", "results", "bank", "fix"]
     ASST_AVATAR = "🦆"
-    TEST_CASE_TIMEOUT = 0.01
+    API_TIMEOUT = [1, 120, 60]  # Min, Max, Default in seconds
+    TEST_CASE_TIMEOUT = [10, 1000, 10]  # Min, Max, Default in milliseconds
 
 
 def set_progress():
@@ -64,5 +63,3 @@ def initialize():
 
     ss.progress_bar = st.sidebar.progress(0)
     set_progress()
-
-    st.sidebar.number_input("API Timeout (s)", 10, 120, 60, step=5, key="timeout")

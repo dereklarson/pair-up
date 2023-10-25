@@ -28,7 +28,7 @@ def overview_main():
         ss.overview_content[ss.problem] = content
         set_progress()
 
-    if not ss.overview_content[ss.problem]:
+    if not ss.overview_content[ss.problem] and not cfg.DEV_TEST:
         ss.tasks.append(
             stream_openai(
                 stream_callback, "", f"Explain the following Python code:\n\n{code}"

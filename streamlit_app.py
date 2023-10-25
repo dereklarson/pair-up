@@ -52,6 +52,11 @@ async def main():
     elif mode == "viz":
         viz_main()
 
+    st.sidebar.number_input("API Timeout (s)", *cfg.API_TIMEOUT, step=5, key="timeout")
+    st.sidebar.number_input(
+        "Test Case Timeout (ms)", *cfg.TEST_CASE_TIMEOUT, step=5, key="tc_timeout"
+    )
+
     # Show all of the active API requests
     st.sidebar.header("Tasks")
 
