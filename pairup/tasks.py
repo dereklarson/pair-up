@@ -10,7 +10,7 @@ from pairup.llm_api import LLM
 ss = st.session_state
 
 
-async def task(label, api_call, store, api_args):
+async def task(label: str, api_call: callable, store: any, api_args: list[any]):
     start = time.perf_counter()
     status = st.sidebar.status(label=label, state="running")
     try:
@@ -27,19 +27,19 @@ async def task(label, api_call, store, api_args):
         status.update(label=f"{label} timeout", state="complete")
 
 
-async def fetch(label, mode):
+async def fetch(label: str, mode: str, code: str):
     api_call = getattr(LLM, f"request_{mode}")
     store = getattr(ss, f"{mode}_content")
-    await task(label, api_call, store, [ss.current_code])
+    await task(label, api_call, store, [code])
 
 
-async def fix(label, mode):
+async def fix(label: str, mode: str):
     api_call = getattr(LLM, f"fix_{mode}")
     store = getattr(ss, f"{mode}_fix")
     await task(label, api_call, store, [store[ss.problem], ss.exceptions[ss.mode]])
 
 
-async def fake_fetch(seconds):
+async def fake_fetch(seconds: int):
     async def fake_call():
         await asyncio.sleep(seconds)
         return "", 0
@@ -47,7 +47,7 @@ async def fake_fetch(seconds):
     await task(f"Fake {seconds}", fake_call, {}, [])
 
 
-async def counter(seconds):
+async def counter(seconds: int):
     ct = 0
     label = f"Count {ct} / {seconds}"
     status = st.sidebar.status(label=label, state="running")
@@ -59,7 +59,7 @@ async def counter(seconds):
     status.update(label=f"Finished: {seconds}", state="complete")
 
 
-def run_prefetch(modes):
+def run_prefetch(modes: list[str], code: str):
     tasks = []
     for mode in modes:
         store = getattr(ss, f"{mode}_content")
@@ -67,5 +67,5 @@ def run_prefetch(modes):
             if ss.dev_test:
                 tasks.append(fake_fetch(5))
             else:
-                tasks.append(fetch(mode, mode))
+                tasks.append(fetch(mode, mode, code))
     return tasks

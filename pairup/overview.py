@@ -8,13 +8,13 @@ ss = st.session_state
 
 
 def overview_main():
-    code = ss.current_code
+    code = ss.overview_code[ss.problem]
     st.header("Overview", divider="blue")
     st.caption("The LLM will attempt to describe what the code is doing.")
 
     left, right = st.columns([1, 1])
     with left:
-        st.code(ss.current_code)
+        st.code(code)
 
     with right:
         # Display assistant response in chat message container with avatar (e.g. 🤖)

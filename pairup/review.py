@@ -61,6 +61,7 @@ def reset():
 
 def review_main():
     ss.review = ss.review_results[ss.problem]
+    current_code = ss.overview_code[ss.problem]
 
     def review():
         ss.tasks.append(fetch(label="manual review", mode="review"))
@@ -72,24 +73,23 @@ def review_main():
         if not ss.review_content[ss.problem]:
             st.caption("Ask the LLM to find bugs and suggest replacements.")
             with left:
-                st.code(ss.current_code)
+                st.code(current_code)
             with right:
                 st.button("Request review", on_click=review)
             return
         parsed_review = parse_method(ss.review_content[ss.problem])
         if parsed_review is None:
             with left:
-                st.code(ss.current_code)
+                st.code(current_code)
             with right:
                 st.caption("The LLM made the following comments on the code:")
                 with st.chat_message("assistant", avatar=cfg.ASST_AVATAR):
                     st.markdown(ss.review_content[ss.problem])
             return
-        ss.review_results[ss.problem] = parse_diff(ss.current_code, parsed_review)
+        ss.review_results[ss.problem] = parse_diff(current_code, parsed_review)
         ss.review = ss.review_results[ss.problem]
 
-    st.sidebar.checkbox("Show Test Cases", key="show_tests")
-    ss.code_bank[ss.problem] = resolve_diff(ss.review)
+    ss.review_code[ss.problem] = resolve_diff(ss.review)
     left, right = st.columns([1, 1])
     with left:
         st.caption(
@@ -118,11 +118,11 @@ def review_main():
             block_idx += 1
 
     with right:
-        if ss.show_tests:
-            st.caption("Track the changes in the test cases.")
-            display_test_cases()
-        else:
+        if ss.show_content:
             st.write(ss.review_content[ss.problem])
+        else:
+            st.caption("Track the changes in the test cases.")
+            display_test_cases(ss.review_code[ss.problem])
 
     if chg_idx == 0:
         st.subheader("All changes handled")

@@ -24,7 +24,7 @@ def open_edit():
     ss.test_bank[ss.problem] = []
 
 
-def display_test_cases():
+def display_test_cases(codestr):
     @func_set_timeout(ss.tc_timeout / 1000)
     def run_func(func, input):
         try:
@@ -34,7 +34,6 @@ def display_test_cases():
         return result
 
     results = []
-    codestr = ss.code_bank[ss.problem]
     es = {**globals()}
     exec(codestr, es)
     func = es[ss.problem]
@@ -59,7 +58,7 @@ def test_main():
         st.header("Generate Test Cases", divider="blue")
         st.caption("Ask the LLM to create a set of test cases for your function.")
         st.button("Generate Test Cases", on_click=remove_content)
-        st.code(ss.current_code)
+        st.code(ss.overview_code[ss.problem])
     elif not ss.test_cases and ss.test_content.get(ss.problem):
         st.header("Review Test Cases", divider="blue")
         st.caption(
@@ -85,14 +84,16 @@ def test_main():
             new_data = edited_cases.to_dict("records")
             st.button("Regenerate Test Cases", on_click=remove_content)
             st.button("Save test cases", on_click=save(new_data))
-        if ss.test_fix[ss.problem]:
-            with right:
-                st.text(ss.test_content[ss.problem])
-                st.text(ss.test_fix[ss.problem])
     else:
         st.header("Test Cases", divider="blue")
         st.caption("These are run against live code to give responsive results.")
         left, right = st.columns([1, 1])
         with left:
-            display_test_cases()
+            display_test_cases(ss.overview_code[ss.problem])
             st.button("Edit", on_click=open_edit)
+
+    if ss.show_content:
+        with right:
+            st.text(ss.test_content[ss.problem])
+            if ss.test_fix[ss.problem]:
+                st.text(ss.test_fix[ss.problem])

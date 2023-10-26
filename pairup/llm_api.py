@@ -3,6 +3,8 @@ import logging
 import openai
 from decouple import config
 
+from pairup.configuration import Configuration as cfg
+
 openai.api_key = config("OPENAI_API_KEY")
 
 
@@ -15,15 +17,26 @@ if not openai.api_key:
     raise MissingKey
 
 
-async def query_openai(system: str, user: str, model: str = "gpt-3.5-turbo"):
+async def query_openai(
+    system: str,
+    user: str,
+    model: str = "gpt-3.5-turbo",
+    temperature: float | None = cfg.DEFAULT_TEMP,
+):
     """Wrap the ChatCompletion API for submitting a query to OpenAI."""
     messages = [
         {"role": "system", "content": system},
         {"role": "user", "content": user},
     ]
+    kwargs = {}
+    if temperature is not None:
+        kwargs["temperature"] = temperature
     response, content, usage = None, "", 0
     try:
-        response = await openai.ChatCompletion.acreate(model=model, messages=messages)
+        logging.info(f"Temp {temperature}")
+        response = await openai.ChatCompletion.acreate(
+            model=model, messages=messages, **kwargs
+        )
         content = response.choices[0].message.content
         usage = response.usage.total_tokens
         logging.info(f"Tokens: {usage:> 4d} Prompt: {user[:50]}")

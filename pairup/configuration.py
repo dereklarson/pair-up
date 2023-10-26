@@ -9,14 +9,22 @@ ss = st.session_state
 
 
 class Configuration:
+    # The basic operations this demo attempts, corresponding to 'pages'.
+    MODES = ["overview", "test", "review", "viz"]
+    # For each (problem, mode) we store relevant data:
+    #   Content - the raw output from the LLM query
+    #   Results - parsed / evaluated content; mutable
+    #   Bank    - results that a user explicitly saves
+    #   Code    - Any changes to code state
+    STORES = ["content", "results", "bank", "code", "fix"]
+
     DEV_TEST = False
     # DEV_TEST = True
     USAGE_LIMIT = 10000
-    MODES = ["overview", "test", "review", "viz"]
-    STORES = ["content", "results", "bank", "fix"]
     ASST_AVATAR = "🦆"
     API_TIMEOUT = [1, 120, 60]  # Min, Max, Default in seconds
     TEST_CASE_TIMEOUT = [10, 1000, 10]  # Min, Max, Default in milliseconds
+    DEFAULT_TEMP = 0.2
 
 
 def set_progress():
@@ -48,12 +56,6 @@ def initialize():
     ss.message = getattr(ss, "message", "Blank")
     ss.exceptions = {mode: None for mode in Configuration.MODES}
     ss.func_bank = {name: func for name, func in problems.items()}
-    ss.code_bank = getattr(
-        ss,
-        "code_bank",
-        {name: inspect.getsource(func) for name, func in problems.items()},
-    )
-
     # Ensure definitions for all of the session state variables
     for mode in Configuration.MODES:
         for store in Configuration.STORES:
@@ -61,6 +63,11 @@ def initialize():
                 ss, f"{mode}_{store}", {name: None for name in problems.keys()}
             )
             setattr(ss, f"{mode}_{store}", store_val)
+
+    # Have overview_code reflect the state of the codebase itself
+    ss.overview_code = {
+        name: inspect.getsource(func) for name, func in problems.items()
+    }
 
     ss.progress_bar = st.sidebar.progress(0)
     set_progress()
