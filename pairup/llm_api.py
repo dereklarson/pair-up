@@ -1,11 +1,13 @@
 import logging
 
 import openai
+import streamlit as st
 from decouple import config
 
 from pairup.configuration import Configuration as cfg
 
 openai.api_key = config("OPENAI_API_KEY")
+ss = st.session_state
 
 
 class MissingKey(Exception):
@@ -33,13 +35,12 @@ async def query_openai(
         kwargs["temperature"] = temperature
     response, content, usage = None, "", 0
     try:
-        logging.info(f"Temp {temperature}")
         response = await openai.ChatCompletion.acreate(
             model=model, messages=messages, **kwargs
         )
         content = response.choices[0].message.content
         usage = response.usage.total_tokens
-        logging.info(f"Tokens: {usage:> 4d} Prompt: {user[:50]}")
+        logging.info(f"Tokens: {usage:> 4d} Temp: {temperature} Prompt: {user[:50]}")
     except Exception as exc:  # TODO Learn what exceptions can happen here
         logging.warning(exc)
         logging.warning(response)
@@ -47,7 +48,7 @@ async def query_openai(
 
 
 async def stream_openai(callback, system: str, user: str, model: str = "gpt-3.5-turbo"):
-    """Wrap the ChatCompletion API for submitting a query to OpenAI."""
+    """Wrap the streaming ChatCompletion API for submitting a query to OpenAI."""
     messages = [
         {"role": "system", "content": system},
         {"role": "user", "content": user},
@@ -74,33 +75,22 @@ async def list_models():
     return results
 
 
-class LLM:
-    async def hello():
-        prompt = f"Hi! What time is it?"
-        response = await query_openai(system="", user=prompt)
-        return response
+class Prompts:
+    def review(code: str):
+        return {
+            "system": "You are a programming assistant that finds bugs in Python code.",
+            "prompt": f"Fix any bugs in the following Python code.\n\n{code}",
+        }
 
-    async def request_function(name: str, description: str):
-        # TODO Unused currently
-        system = "You are a programming assistant that generates Python code."
-        prompt = f"Create a Python function called {name}. {description}\n\ndef {name}("
-        response = await query_openai(system, prompt)
-        return response
-
-    async def request_review(code: str, name: str = ""):
-        system = "You are a programming assistant that finds bugs in Python code."
-        prompt = f"Fix any bugs in the following Python code.\n\n{code}"
-        return await query_openai(system, prompt)
-
-    async def request_test(code: str, name: str = ""):
+    def test(code: str):
         base_prompt = """Generate test cases for the following Python code.
         Define a variable 'test_cases' as a list of dictionaries with 'inputs'
         as one field and 'expected' as another. Do not include any text.
         """
 
         system = "You are a programming assistant that generates Python code."
-        prompt = f"{' '.join(base_prompt.split())}\n\n{code}\n"
-        return await query_openai(system, prompt)
+        user = f"{' '.join(base_prompt.split())}\n\n{code}\n"
+        return dict(system=system, user=user)
 
     async def fix_test(code: str, exc: str = ""):
         system = "You are a programming assistant that generates Python code."

@@ -59,6 +59,7 @@ def test_main():
         st.caption("Ask the LLM to create a set of test cases for your function.")
         st.button("Generate Test Cases", on_click=remove_content)
         st.code(ss.overview_code[ss.problem])
+        return
     elif not ss.test_cases and ss.test_content.get(ss.problem):
         st.header("Review Test Cases", divider="blue")
         st.caption(
