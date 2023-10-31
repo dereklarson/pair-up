@@ -26,20 +26,23 @@ def open_edit():
 
 def display_test_cases(codestr):
     @func_set_timeout(ss.tc_timeout / 1000)
-    def run_func(func, input):
+    def run_func(func, name, *args, **kwargs):
         try:
-            result = func(input)
+            es = {**globals()}
+            exec(codestr, es)
+            func = es[name]
+            result = func(*args, **kwargs)
+        # TODO Ideally, break generic out into some expected error types
         except Exception as exc:
             result = str(exc)
         return result
 
+    # Determine a function for parsing test case inputs
     results = []
-    es = {**globals()}
-    exec(codestr, es)
-    func = es[ss.problem]
     for case in ss.test_cases:
         try:
-            result = run_func(func, case.get("input", case.get("inputs")))
+            inputs = case.get("inputs", case.get("input", []))
+            result = run_func(codestr, ss.problem, **inputs)
         except FunctionTimedOut as exc:
             result = f"Timeout({ss.tc_timeout}ms)"
         results.append(result)
@@ -48,11 +51,12 @@ def display_test_cases(codestr):
     st.dataframe(df, use_container_width=True)
 
 
+def remove_content():
+    ss.test_content[ss.problem] = None
+
+
 def test_main():
     ss.test_cases = ss.test_bank[ss.problem]
-
-    def remove_content():
-        ss.test_content[ss.problem] = None
 
     if not ss.test_cases and not ss.test_content.get(ss.problem):
         st.header("Generate Test Cases", divider="blue")
