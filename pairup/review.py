@@ -11,7 +11,9 @@ from pairup.test import display_test_cases
 ss = st.session_state
 
 
-def clean_block(block: list[str]) -> str:
+def block_disp(block: list[str], clean: bool = True) -> str:
+    if clean:
+        block = [line[2:] for line in block]
     return "\n".join(block)
 
 
@@ -59,6 +61,10 @@ def reset():
     ss.review_results[ss.problem] = []
 
 
+def remove_content():
+    ss.review_content[ss.problem] = None
+
+
 def review_main():
     ss.review = ss.review_results[ss.problem]
     current_code = ss.overview_code[ss.problem]
@@ -85,6 +91,7 @@ def review_main():
                 st.caption("The LLM made the following comments on the code:")
                 with st.chat_message("assistant", avatar=cfg.ASST_AVATAR):
                     st.markdown(ss.review_content[ss.problem])
+                st.button("Rerequest Review", on_click=remove_content)
             return
         ss.review_results[ss.problem] = parse_diff(current_code, parsed_review)
         ss.review = ss.review_results[ss.problem]
@@ -98,14 +105,13 @@ def review_main():
         chg_idx = 0
         block_idx = 0
         for block in ss.review:
-            disp = clean_block(block[1])
             if block[0] == " ":
-                st.code(disp)
+                st.code(block_disp(block[1]))
 
             else:
                 chg_idx += 1
                 with st.expander(f"Change {chg_idx}", expanded=True):
-                    st.code(disp)
+                    st.code(block_disp(block[1], clean=False))
                     col1, col2, _ = st.columns([1, 1, 5])
                     with col1:
                         st.button(
@@ -130,4 +136,5 @@ def review_main():
         with col1:
             st.button("Save code", on_click=save)
         with col2:
-            st.button("Reset Review", on_click=reset)
+            st.button("Reset Review Decisions", on_click=reset)
+            st.button("Rerequest Review", on_click=remove_content)
