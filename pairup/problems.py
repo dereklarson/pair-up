@@ -34,8 +34,8 @@ def longest_substring(s: str) -> int:
 
     for end in range(len(s)):
         curr = s[end]
-        if curr in char_index_map and char_index_map[curr] >= start:
-            start = char_index_map[curr] + 1
+        if curr in char_index_map and char_index_map[curr] > start:
+            start = char_index_map[curr]
         char_index_map[curr] = end
         current_length = end - start + 2
         max_length = max(max_length, current_length)
@@ -172,34 +172,77 @@ def check_bst(root: TreeNode) -> bool:
     return True
 
 
-# def isValidBST(root: any) -> bool:
-#     def isValidBounded(root, low, hi):
-#         print(root.val, low, hi)
-#         if root.val <= low or root.val >= hi:
-#             return False
-#         if root.left is None and root.right is None:
-#             return True
-#         if root.left is not None:
-#             valid = isValidBounded(root.left, low, min(root.val, hi))
-#             if not valid:
-#                 return False
-#         if root.right is not None:
-#             valid = isValidBounded(root.right, max(root.val, low), hi)
-#             if not valid:
-#                 return False
-#         return True
-
-#     return isValidBounded(root, -float("inf"), float("inf"))
-
-
 # Problems with solutions that are correct
-Problems.reverse_linked_list = reverse_linked_list
+# Problems.reverse_linked_list = reverse_linked_list
 Problems.longest_substring = longest_substring
 Problems.max_area = max_area
-Problems.combination_sum = combination_sum
-Problems.num_islands = num_islands
-Problems.check_bst = check_bst
+# Problems.combination_sum = combination_sum
+# Problems.num_islands = num_islands
+# Problems.check_bst = check_bst
 
 # Problems with added bugs
-Problems.max_area_d = max_area_d
-Problems.combination_sum_d = combination_sum_d
+# Problems.max_area_d = max_area_d
+# Problems.combination_sum_d = combination_sum_d
+
+ls_ref_code = """
+def longest_substring(s: str) -> int:
+    char_index_map = {}
+    max_length = 0
+    start = 0
+    
+    for end in range(len(s)):
+        if s[end] in char_index_map and char_index_map[s[end]] >= start:
+            start = char_index_map[s[end]] + 1
+        char_index_map[s[end]] = end
+        current_length = end - start + 1
+        if current_length > max_length:
+            max_length = current_length
+
+        frames.append({
+            "start": start,
+            "end": end,
+            "length": current_length,
+        })
+            
+    return max_length
+"""
+
+ma_ref_code = """
+def max_area(height) -> int:
+    N = len(height)
+    left, right = 0, N-1
+    best = 0
+
+    while left < right:
+        current_area = (right - left) * min(height[left], height[right])
+        best = max(best, current_area)
+        frames.append([left, right, current_area])
+
+        if height[left] < height[right]:
+            left += 1
+        else:
+            right -= 1
+
+    return best
+"""
+
+
+class TestReference:
+    longest_substring = [
+        {"inputs": {"s": "abcd"}, "expected": 4},
+        {"inputs": {"s": ""}, "expected": 0},
+        {"inputs": {"s": "aaaaa"}, "expected": 1},
+        {"inputs": {"s": "abcdefgfedcba"}, "expected": 7},
+        {"inputs": {"s": "abcdefgabcdefg"}, "expected": 7},
+    ]
+
+    max_area = [
+        {"inputs": {"height": [1, 1, 1, 1, 1]}, "expected": 4},
+        {"inputs": {"height": [1, 8, 6, 2, 5, 4, 8, 3, 7]}, "expected": 49},
+        {"inputs": {"height": [1, 2, 4, 8, 8, 4, 3, 2, 1]}, "expected": 12},
+    ]
+
+
+class VizReference:
+    longest_substring = ls_ref_code
+    max_area = ma_ref_code
