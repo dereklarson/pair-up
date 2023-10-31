@@ -5,17 +5,17 @@ import streamlit as st
 from async_timeout import timeout
 
 from pairup.configuration import set_progress
-from pairup.llm_api import LLM
+from pairup.llm_api import Prompts, query_openai
 
 ss = st.session_state
 
 
-async def task(label: str, api_call: callable, store: any, api_args: list[any]):
+async def task(label: str, api_call: callable, store: any, prompt: dict[str, str]):
     start = time.perf_counter()
     status = st.sidebar.status(label=label, state="running")
     try:
-        async with timeout(ss.timeout):
-            response = await api_call(*api_args)
+        async with timeout(ss.api_timeout):
+            response = await api_call(**prompt, temperature=ss.temperature)
             content, usage = response
             ss.usage += usage
             set_progress()
@@ -28,13 +28,17 @@ async def task(label: str, api_call: callable, store: any, api_args: list[any]):
 
 
 async def fetch(label: str, mode: str, code: str):
-    api_call = getattr(LLM, f"request_{mode}")
+    api_call = query_openai
+    prompt = getattr(Prompts, mode)(code)
     store = getattr(ss, f"{mode}_content")
-    await task(label, api_call, store, [code])
+    await task(label, api_call, store, prompt)
 
 
 async def fix(label: str, mode: str):
-    api_call = getattr(LLM, f"fix_{mode}")
+    api_call = query_openai
+    # TODO Reimplement
+    return
+    getattr(Prompts, f"fix_{mode}")
     store = getattr(ss, f"{mode}_fix")
     await task(label, api_call, store, [store[ss.problem], ss.exceptions[ss.mode]])
 

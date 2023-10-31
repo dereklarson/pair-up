@@ -22,8 +22,8 @@ if not openai.api_key:
 async def query_openai(
     system: str,
     user: str,
-    model: str = "gpt-3.5-turbo",
-    temperature: float | None = cfg.DEFAULT_TEMP,
+    model: str = "gpt-3.5-turbo-0613",
+    temperature: float | None = cfg.TEMPERATURE[2],
 ):
     """Wrap the ChatCompletion API for submitting a query to OpenAI."""
     messages = [
@@ -41,6 +41,8 @@ async def query_openai(
         content = response.choices[0].message.content
         usage = response.usage.total_tokens
         logging.info(f"Tokens: {usage:> 4d} Temp: {temperature} Prompt: {user[:50]}")
+        logging.debug(user)
+        logging.debug(content)
     except Exception as exc:  # TODO Learn what exceptions can happen here
         logging.warning(exc)
         logging.warning(response)
@@ -79,7 +81,7 @@ class Prompts:
     def review(code: str):
         return {
             "system": "You are a programming assistant that finds bugs in Python code.",
-            "prompt": f"Fix any bugs in the following Python code.\n\n{code}",
+            "user": f"Fix any bugs in the following Python code.\n\n{code}",
         }
 
     def test(code: str):
@@ -92,12 +94,12 @@ class Prompts:
         user = f"{' '.join(base_prompt.split())}\n\n{code}\n"
         return dict(system=system, user=user)
 
-    async def fix_test(code: str, exc: str = ""):
-        system = "You are a programming assistant that generates Python code."
-        prompt = f"These test cases:\n\n{code}\n\nGives an error: {exc}. Fix the error."
-        return await query_openai(system, prompt)
+    # async def fix_test(code: str, exc: str = ""):
+    #     system = "You are a programming assistant that generates Python code."
+    #     prompt = f"These test cases:\n\n{code}\n\nGives an error: {exc}. Fix the error."
+    #     return await query_openai(system, prompt)
 
-    async def request_viz(code: str, name: str = ""):
+    def viz(code: str, name: str = ""):
         base_prompt = """Add code to the following Python function to capture the state
         during each iteration. Assume we can access a global variable called "frames" 
         that is a list of dictionaries."""
@@ -109,5 +111,5 @@ class Prompts:
         # """
 
         system = "You are a programming assistant that generates Python code for visualization."
-        prompt = f"{' '.join(base_prompt.split())}\n\n{code}"
-        return await query_openai(system, prompt)
+        user = f"{' '.join(base_prompt.split())}\n\n{code}"
+        return dict(system=system, user=user)

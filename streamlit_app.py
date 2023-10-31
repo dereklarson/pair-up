@@ -1,5 +1,6 @@
 """A prototype of a programming assistant that can provide live views of data."""
 import asyncio
+import logging
 
 import streamlit as st
 
@@ -42,7 +43,7 @@ async def main():
         return
 
     st.sidebar.checkbox("Show Content", key="show_content")
-    st.sidebar.number_input("Temperature", 0.2, 1.0, step=0.1, key="temperature")
+    st.sidebar.number_input("Temperature", *cfg.TEMPERATURE, key="temperature")
     st.sidebar.number_input(
         "API Timeout (s)", *cfg.API_TIMEOUT, step=5, key="api_timeout"
     )
@@ -69,9 +70,11 @@ async def main():
     for _ in range(len(ss.tasks)):
         batch.append(ss.tasks.pop(0))
     if len(batch) > 1:
+        logging.info("Set rerun")
         rerun_after_tasks = True
     await asyncio.gather(*batch)
     if rerun_after_tasks:
+        logging.info("Rerun")
         st.rerun()
 
 

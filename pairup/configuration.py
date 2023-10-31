@@ -10,7 +10,8 @@ ss = st.session_state
 
 class Configuration:
     # The basic operations this demo attempts, corresponding to 'pages'.
-    MODES = ["overview", "test", "review", "viz"]
+    # MODES = ["overview", "test", "review", "viz"]
+    MODES = ["overview", "test", "viz"]
     # For each (problem, mode) we store relevant data:
     #   Content - the raw output from the LLM query
     #   Results - parsed / evaluated content; mutable
@@ -20,11 +21,12 @@ class Configuration:
 
     DEV_TEST = False
     # DEV_TEST = True
+    LOG_LEVEL = logging.DEBUG
     USAGE_LIMIT = 10000
     ASST_AVATAR = "🦆"
     API_TIMEOUT = [1, 120, 60]  # Min, Max, Default in seconds
     TEST_CASE_TIMEOUT = [10, 1000, 10]  # Min, Max, Default in milliseconds
-    DEFAULT_TEMP = 0.2
+    TEMPERATURE = [0.2, 2.0, 1.0]
 
 
 def set_progress():
@@ -42,7 +44,7 @@ def initialize():
         filename="pairup.log",
         format="%(asctime)s.%(msecs)d|%(levelname)s| %(message)s",
         datefmt="%H:%M:%S",
-        level=logging.INFO,
+        level=Configuration.LOG_LEVEL,
     )
     logging.info("Initialize Streamlit")
 
