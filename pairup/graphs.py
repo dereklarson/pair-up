@@ -1,3 +1,6 @@
+import pandas as pd
+import plotly.express as px
+import streamlit as st
 import streamlit.components.v1 as st_comp
 from pyvis.network import Network
 
@@ -65,3 +68,49 @@ def plot_graph(nodes: list, edges: list):
     network.write_html("viz.html")
     with open("viz.html", "r", encoding="utf-8") as fh:
         st_comp.html(fh.read(), width=1200, height=430)
+
+
+def box(frames, height):
+    N = len(frames)
+    data = []
+    for f_idx, frame in enumerate(frames):
+        left, right, area = frame
+        data.extend(
+            [
+                {
+                    "x": h_idx,
+                    "height": h,
+                    "frame": f_idx,
+                    "area": area,
+                    "focus": True if h_idx in (left, right) else False,
+                }
+                for h_idx, h in enumerate(height)
+            ]
+        )
+
+    df = pd.DataFrame(data)
+    fig = px.bar(
+        df,
+        x="x",
+        y="height",
+        color="focus",
+        animation_frame="frame",
+        width=800,
+        height=400,
+    )
+    st.plotly_chart(fig)
+
+
+def frames2lines(frames, s: str):
+    lines = []
+    for frame in frames:
+        line = ""
+        color = "green"
+        for idx in range(len(s)):
+            if frame["start"] <= idx <= frame["end"]:
+                line += f":{color}[{s[idx]}] "
+            else:
+                line += s[idx] + " "
+        line += f" Length: {frame['length']}"
+        lines.append(line)
+    st.markdown("  \n".join(lines))
